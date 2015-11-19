@@ -18,9 +18,9 @@ namespace SituatorMilestone
 {
     public partial class Form1 : Form
     {
-        private HttpClient client;
-        private IEnumerable<MilestoneTask> milestoneTasks;
-        private string sessionToken;
+        private HttpClient _client;
+        private IEnumerable<MilestoneTask> _milestoneTasks;
+        private string _sessionToken;
         public Form1()
         {
             InitializeComponent();
@@ -39,11 +39,11 @@ namespace SituatorMilestone
             var handler = new HttpClientHandler {CookieContainer = cookieContainer};
             var result = new HttpClient(handler) {BaseAddress = new Uri(GetBaseAddress())};
             result.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            if (string.IsNullOrWhiteSpace(sessionToken))
+            if (string.IsNullOrWhiteSpace(_sessionToken))
             {
-                sessionToken = LogIn(ConfigurationManager.AppSettings["username"], ConfigurationManager.AppSettings["password"]);
+                _sessionToken = LogIn(ConfigurationManager.AppSettings["username"], ConfigurationManager.AppSettings["password"]);
             }
-            cookieContainer.Add(result.BaseAddress, new Cookie("session-token", sessionToken));
+            cookieContainer.Add(result.BaseAddress, new Cookie("session-token", _sessionToken));
 
             return result;
         }
@@ -54,17 +54,17 @@ namespace SituatorMilestone
         /// <param name="e"></param>
         private async void button1_Click(object sender, EventArgs e)
         {
-            if (client == null)
+            if (_client == null)
             {
-                client = GetHttpClient();
+                _client = GetHttpClient();
             }
             
-            milestoneTasks = (await GetMilestoneIds(client, textBoxSitWebApi.Text, textBoxIncidentId.Text)).ToList();
+            _milestoneTasks = (await GetMilestoneIds(_client, textBoxSitWebApi.Text, textBoxIncidentId.Text)).ToList();
           //  textBoxMilestones.Text += milestoneIds.Aggregate((a, b) => a + " " + b);
             textBoxMilestones.Text += Environment.NewLine;
-            foreach (var t in milestoneTasks)
+            foreach (var t in _milestoneTasks)
             {
-                var milestoneTask = await GetTask(client, textBoxSitWebApi.Text, t);
+                var milestoneTask = await GetTask(_client, textBoxSitWebApi.Text, t);
                 textBoxMilestones.Text += "task " + Environment.NewLine;
                 foreach (var te in milestoneTask.TaskEvents)
                 {
@@ -76,30 +76,31 @@ namespace SituatorMilestone
             }
         }
 
-        private TaskEvent ProcessContent(TaskEvent taskEvent)
+        private static TaskEvent ProcessContent(TaskEvent taskEvent)
         {
             var doc = XDocument.Parse(taskEvent.Content);
-            foreach (var el in doc.Root.Elements())
-            {
-                Console.WriteLine("{0} {1}", el.Name, el.Value);
-                if (el.Name == "PlannedEndTime")
+            if (doc.Root != null)
+                foreach (var el in doc.Root.Elements())
                 {
-                    var ticks = long.Parse(el.Value);
-                    if (ticks > 0)
+                    Console.WriteLine("{0} {1}", el.Name, el.Value);
+                    if (el.Name == "PlannedEndTime")
                     {
-                        taskEvent.PlannedEndTime = new DateTime(ticks);
-                    }
+                        var ticks = long.Parse(el.Value);
+                        if (ticks > 0)
+                        {
+                            taskEvent.PlannedEndTime = new DateTime(ticks);
+                        }
 
+                    }
+                    else if (el.Name == "UserJobTitleName")
+                    {
+                        taskEvent.UserJobTitleName = el.Value;
+                    }
+                    else if (el.Name == "Comment")
+                    {
+                        taskEvent.Comment = el.Value;
+                    }
                 }
-                else if (el.Name == "UserJobTitleName")
-                {
-                    taskEvent.UserJobTitleName = el.Value;
-                }
-                else if (el.Name == "Comment")
-                {
-                    taskEvent.Comment = el.Value;
-                }
-            }
             return taskEvent;
         }
     
@@ -134,22 +135,23 @@ namespace SituatorMilestone
                     content = content.Replace("\r\n", "").Replace("\n", "");
                     var doc = XDocument.Parse(content);
 
-                    foreach (var el in doc.Root.Elements())
-                    {
-                        if (el.Name == "PlannedEndTime")
+                    if (doc.Root != null)
+                        foreach (var el in doc.Root.Elements())
                         {
-                            var ticks = long.Parse(el.Value);
-                            te.PlannedEndTime = new DateTime(ticks);
+                            if (el.Name == "PlannedEndTime")
+                            {
+                                var ticks = long.Parse(el.Value);
+                                te.PlannedEndTime = new DateTime(ticks);
+                            }
+                            else if (el.Name == "Comment")
+                            {
+                                te.Comment = el.Value;
+                            }
+                            else if (el.Name == "UserJobTitleName")
+                            {
+                                te.UserJobTitleName = el.Value;
+                            }
                         }
-                        else if (el.Name == "Comment")
-                        {
-                            te.Comment = el.Value;
-                        }
-                        else if (el.Name == "UserJobTitleName")
-                        {
-                            te.UserJobTitleName = el.Value;
-                        }
-                    }
                 }
             }
             return localTaskEvents;
@@ -170,11 +172,13 @@ namespace SituatorMilestone
             var dTasks = myDyn.DTasks;
             var jValuePrognose = ((IEnumerable<dynamic>) dTasks).FirstOrDefault(dt => 
                 (dt.TaskType == "MilestoneTask") && (dt.Name == "PrognoseVerloop"));
+        if (jValuePrognose != null)
             result.Add(new MilestoneTask {Id = jValuePrognose.TaskID, Name = jValuePrognose.Name});
-            var jValueScenario = ((IEnumerable<dynamic>)dTasks).FirstOrDefault(dt =>
+        var jValueScenario = ((IEnumerable<dynamic>)dTasks).FirstOrDefault(dt =>
                 (dt.TaskType == "MilestoneTask") && (dt.Name == "ScenarioVerloop"));
+        if (jValueScenario != null)
             result.Add(new MilestoneTask { Id = jValueScenario.TaskID, Name = jValueScenario.Name });
-            return result;
+        return result;
         }
 
         private string GetBaseAddress()
@@ -191,7 +195,7 @@ namespace SituatorMilestone
             return new Uri(textBoxSitWebApi.Text, UriKind.Absolute);
         }
 
-        public string LogIn(string user, string password)
+        private string LogIn(string user, string password)
         {
             var cookies = new CookieContainer();
             var handler = new HttpClientHandler { CookieContainer = cookies };
@@ -220,12 +224,12 @@ namespace SituatorMilestone
 
         private async void buttonUpdateTis_Click(object sender, EventArgs e)
         {
-            if (milestoneTasks == null)
+            if (_milestoneTasks == null)
             {
                 button1_Click(sender, e);
             }
-            if (milestoneTasks == null) return;
-            var tisTask = milestoneTasks.FirstOrDefault(m => m.Name.ToLower().Contains("scenario"));
+            if (_milestoneTasks == null) return;
+            var tisTask = _milestoneTasks.FirstOrDefault(m => m.Name.ToLower().Contains("scenario"));
             if (tisTask == null) return;
             
             var ticks = dateTimePickerDateTis.Value.Ticks;
@@ -233,7 +237,7 @@ namespace SituatorMilestone
             var umt = new UpdateMilestoneTask {Comment = textBoxCommentTis.Text, PlannedEndTime = ticks.ToString()};
             var formatter = new JsonMediaTypeFormatter { SerializerSettings = { NullValueHandling = NullValueHandling.Ignore } };
             var content = new ObjectContent<UpdateMilestoneTask>(umt, formatter);
-            var response = await client.PostAsync(url, content);
+            var response = await _client.PostAsync(url, content);
             Console.WriteLine(response);
             if (!response.IsSuccessStatusCode)
             {
@@ -243,12 +247,12 @@ namespace SituatorMilestone
 
         private async void buttonUpdateProg_Click(object sender, EventArgs e)
         {
-            if (milestoneTasks == null)
+            if (_milestoneTasks == null)
             {
                 button1_Click(sender, e);
             }
-            if (milestoneTasks == null) return;
-            var progTask = milestoneTasks.FirstOrDefault(m => m.Name.ToLower().Contains("prog"));
+            if (_milestoneTasks == null) return;
+            var progTask = _milestoneTasks.FirstOrDefault(m => m.Name.ToLower().Contains("prog"));
             if (progTask == null) return;
 
             var ticks = dateTimePickerDateProg.Value.Ticks;
@@ -256,7 +260,7 @@ namespace SituatorMilestone
             var umt = new UpdateMilestoneTask { Comment = textBoxCommentTis.Text, PlannedEndTime = ticks.ToString() };
             var formatter = new JsonMediaTypeFormatter { SerializerSettings = { NullValueHandling = NullValueHandling.Ignore } };
             var content = new ObjectContent<UpdateMilestoneTask>(umt, formatter);
-            var response = await client.PostAsync(url, content);
+            var response = await _client.PostAsync(url, content);
             Console.WriteLine(response);
             if (!response.IsSuccessStatusCode)
             {
