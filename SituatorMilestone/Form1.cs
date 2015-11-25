@@ -35,8 +35,8 @@ namespace SituatorMilestone
         {
             var cookieContainer = new CookieContainer();
             //var token = textBoxToken.Text; //await Login();
-            var handler = new HttpClientHandler {CookieContainer = cookieContainer};
-            var result = new HttpClient(handler) {BaseAddress = new Uri(GetBaseAddress())};
+            var handler = new HttpClientHandler { CookieContainer = cookieContainer };
+            var result = new HttpClient(handler) { BaseAddress = new Uri(GetBaseAddress()) };
             result.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             if (string.IsNullOrWhiteSpace(_sessionToken))
             {
@@ -57,13 +57,13 @@ namespace SituatorMilestone
             {
                 _client = await GetHttpClient();
             }
-            
-            _milestoneTasks = (await GetMilestoneIds(_client, textBoxSitWebApi.Text, textBoxIncidentId.Text)).ToList();
-          //  textBoxMilestones.Text += milestoneIds.Aggregate((a, b) => a + " " + b);
-            
-            foreach (var t in _milestoneTasks)
+
+            _milestoneTasks = (await GetMilestones(_client, textBoxSitWebApi.Text, textBoxIncidentId.Text)).ToList();
+            //  textBoxMilestones.Text += milestoneIds.Aggregate((a, b) => a + " " + b);
+
+            foreach (var milestoneTask in _milestoneTasks)
             {
-                var milestoneTask = await GetTask(_client, textBoxSitWebApi.Text, t);
+                //var milestoneTask = await GetTask(_client, textBoxSitWebApi.Text, t);
                 textBoxMilestones.Text += Environment.NewLine;
                 textBoxMilestones.Text += "task " + milestoneTask.Name + Environment.NewLine;
                 foreach (var te in milestoneTask.TaskEvents)
@@ -75,66 +75,50 @@ namespace SituatorMilestone
                 }
             }
         }
-    
-        private static async Task<MilestoneTask> GetTask(HttpClient client, string urlSit, MilestoneTask milestoneTask)
+        private static IEnumerable<TaskEvent> GetTaskEvents(dynamic dTaskEvents)
         {
-            var url = string.Format("{0}/odata/DTasks({1})?$expand=DTaskEvents", urlSit, milestoneTask.Id);
-            var response = await client.GetAsync(url);
-            if (response.IsSuccessStatusCode)
-            {
-                var res = await response.Content.ReadAsStringAsync();
-                var myDyn = JsonConvert.DeserializeObject<dynamic>(res);
-                var dTaskEvents = myDyn.DTaskEvents;
-                var taskEvents = ((IEnumerable<dynamic>) dTaskEvents).Select(dt => 
-                    new TaskEvent
-                    {
-                        Content = dt.Content,
-                        ReportTimeDateTime = DateTime.Parse(dt.ReportTimeDateTime.ToString(), CultureInfo.InvariantCulture),                       
-                    });
-                milestoneTask.TaskEvents = HandleTaskContent(taskEvents);
-            }
-            return milestoneTask;
+            return (from dyn in (IEnumerable<dynamic>)dTaskEvents select GetTaskEvent(dyn)).Cast<TaskEvent>();
         }
 
-        private static IEnumerable<TaskEvent> HandleTaskContent(IEnumerable<TaskEvent> taskEvents)
+        private static TaskEvent GetTaskEvent(dynamic dTaskEvent)
         {
-            var localTaskEvents = taskEvents.ToList();
-            foreach (var te in localTaskEvents)
-            {
-                if (string.IsNullOrWhiteSpace(te.Content)) continue;
-                var content = te.Content;
-                var doc = XDocument.Parse(content);
+            string content = dTaskEvent.Content;
+            if (string.IsNullOrWhiteSpace(content)) return null;
+            var doc = XDocument.Parse(content);
 
-                if (doc.Root == null) continue;
-                foreach (var el in doc.Root.Elements())
+            if (doc.Root == null) return null;
+            var result = new TaskEvent
+            {
+                ReportTimeDateTime = DateTime.Parse(dTaskEvent.ReportTimeDateTime.ToString(),
+                    CultureInfo.InvariantCulture)
+            };
+            foreach (var el in doc.Root.Elements())
+            {
+                if (el.Name == "PlannedEndTime")
                 {
-                    if (el.Name == "PlannedEndTime")
+                    var ticks = long.Parse(el.Value);
+                    if (ticks > 0)
                     {
-                        var ticks = long.Parse(el.Value);
-                        if (ticks > 0)
-                        {
-                            te.PlannedEndTime = new DateTime(ticks);
-                        }
-                    }
-                    else if (el.Name == "Comment")
-                    {
-                        te.Comment = el.Value;
-                    }
-                    else if (el.Name == "UserJobTitleName")
-                    {
-                        te.UserJobTitleName = el.Value;
+                        result.PlannedEndTime = new DateTime(ticks);
                     }
                 }
+                else if (el.Name == "Comment")
+                {
+                    result.Comment = el.Value;
+                }
+                else if (el.Name == "UserJobTitleName")
+                {
+                    result.UserJobTitleName = el.Value;
+                }
             }
-            return localTaskEvents;
+            return result;
         }
-    
 
-    private static async Task<IEnumerable<MilestoneTask>> GetMilestoneIds(HttpClient client, string urlSit, string incidentId)
+        private static async Task<IEnumerable<MilestoneTask>> GetMilestones(HttpClient client, string urlSit, string incidentId)
         {
             var result = new List<MilestoneTask>();
             // TODO: milestone tasks on closed incidents does not work. Will be fixed in 26 nov Situator Drop.
-            var url = string.Format("{0}/odata/Incidents({1})?$expand=DTasks", urlSit, incidentId);
+            var url = string.Format("{0}/odata/Incidents({1})?$expand=DTasks/DTaskEvents", urlSit, incidentId);
             //var url = string.Format("{0}/odata/incidents?$filter=IncidentID eq {1} and Status eq 'Closed'&$expand=DTasks", urlSit, incidentId);
             var response = await client.GetAsync(url);
             if (!response.IsSuccessStatusCode) return result;
@@ -142,15 +126,19 @@ namespace SituatorMilestone
             var res = await response.Content.ReadAsStringAsync();
             var myDyn = JsonConvert.DeserializeObject<dynamic>(res);
             var dTasks = myDyn.DTasks;
-            var jValuePrognose = ((IEnumerable<dynamic>) dTasks).FirstOrDefault(dt => 
-                (dt.TaskType == "MilestoneTask") && (dt.Name == "PrognoseVerloop"));
-        if (jValuePrognose != null)
-            result.Add(new MilestoneTask {Id = jValuePrognose.TaskID, Name = jValuePrognose.Name});
-        var jValueScenario = ((IEnumerable<dynamic>)dTasks).FirstOrDefault(dt =>
-                (dt.TaskType == "MilestoneTask") && (dt.Name == "ScenarioVerloop"));
-        if (jValueScenario != null)
-            result.Add(new MilestoneTask { Id = jValueScenario.TaskID, Name = jValueScenario.Name });
-        return result;
+            var jValuePrognose = ((IEnumerable<dynamic>)dTasks).FirstOrDefault(dt =>
+               (dt.TaskType == "MilestoneTask") && (dt.Name == "PrognoseVerloop"));
+            if (jValuePrognose != null)
+            {
+                result.Add(new MilestoneTask { TaskEvents = GetTaskEvents(jValuePrognose.DTaskEvents), Id = jValuePrognose.TaskID, Name = jValuePrognose.Name });
+            }
+            var jValueScenario = ((IEnumerable<dynamic>)dTasks).FirstOrDefault(dt =>
+                    (dt.TaskType == "MilestoneTask") && (dt.Name == "ScenarioVerloop"));
+            if (jValueScenario != null)
+            {
+                result.Add(new MilestoneTask() { TaskEvents = GetTaskEvents(jValueScenario.DTaskEvents), Id = jValueScenario.TaskID, Name = jValueScenario.Name });
+            }
+            return result;
         }
 
         private string GetBaseAddress()
@@ -178,7 +166,7 @@ namespace SituatorMilestone
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             client.DefaultRequestHeaders.Add("X-Api-Version", "1");
             var sitUri = GetSituatorWebApiUrl();
-            var url = sitUri + "/"  + "api/Login";
+            var url = sitUri + "/" + "api/Login";
             //string url = GetBaseAddress() + "/" + "api/Login";
             var response = await client.PostAsync(url, null);
             if (!response.IsSuccessStatusCode) return string.Empty;
@@ -203,10 +191,10 @@ namespace SituatorMilestone
             if (_milestoneTasks == null) return;
             var tisTask = _milestoneTasks.FirstOrDefault(m => m.Name.ToLower().Contains("scenario"));
             if (tisTask == null) return;
-            
+
             var ticks = dateTimePickerDateTis.Value.Ticks;
             var url = string.Format("{0}/odata/DTasks({1})/UpdateEndTime", GetSituatorWebApiUrl(), tisTask.Id);
-            var umt = new UpdateMilestoneTask {Comment = textBoxCommentTis.Text, PlannedEndTime = ticks.ToString()};
+            var umt = new UpdateMilestoneTask { Comment = textBoxCommentTis.Text, PlannedEndTime = ticks.ToString() };
             var formatter = new JsonMediaTypeFormatter { SerializerSettings = { NullValueHandling = NullValueHandling.Ignore } };
             var content = new ObjectContent<UpdateMilestoneTask>(umt, formatter);
             var response = await _client.PostAsync(url, content);
@@ -239,6 +227,58 @@ namespace SituatorMilestone
                 MessageBox.Show(response.Content.ReadAsStringAsync().Result);
             }
         }
+        //private static async Task<MilestoneTask> GetTask(HttpClient client, string urlSit, MilestoneTask milestoneTask)
+        //{
+        //    var url = string.Format("{0}/odata/DTasks({1})?$expand=DTaskEvents", urlSit, milestoneTask.Id);
+        //    var response = await client.GetAsync(url);
+        //    if (response.IsSuccessStatusCode)
+        //    {
+        //        var res = await response.Content.ReadAsStringAsync();
+        //        var myDyn = JsonConvert.DeserializeObject<dynamic>(res);
+        //        var dTaskEvents = myDyn.DTaskEvents;
+        //        var taskEvents = ((IEnumerable<dynamic>)dTaskEvents).Select(dt =>
+        //           new TaskEvent
+        //           {
+        //               Content = dt.Content,
+        //               ReportTimeDateTime = DateTime.Parse(dt.ReportTimeDateTime.ToString(), CultureInfo.InvariantCulture),
+        //           });
+        //        milestoneTask.TaskEvents = HandleTaskContent2(taskEvents);
+        //    }
+        //    return milestoneTask;
+        //}
+
+        //private static IEnumerable<TaskEvent> HandleTaskContent2(IEnumerable<TaskEvent> taskEvents)
+        //{
+        //    var localTaskEvents = taskEvents.ToList();
+        //    foreach (var te in localTaskEvents)
+        //    {
+        //        if (string.IsNullOrWhiteSpace(te.Content)) continue;
+        //        var content = te.Content;
+        //        var doc = XDocument.Parse(content);
+
+        //        if (doc.Root == null) continue;
+        //        foreach (var el in doc.Root.Elements())
+        //        {
+        //            if (el.Name == "PlannedEndTime")
+        //            {
+        //                var ticks = long.Parse(el.Value);
+        //                if (ticks > 0)
+        //                {
+        //                    te.PlannedEndTime = new DateTime(ticks);
+        //                }
+        //            }
+        //            else if (el.Name == "Comment")
+        //            {
+        //                te.Comment = el.Value;
+        //            }
+        //            else if (el.Name == "UserJobTitleName")
+        //            {
+        //                te.UserJobTitleName = el.Value;
+        //            }
+        //        }
+        //    }
+        //    return localTaskEvents;
+        //}
     }
 }
 
@@ -267,8 +307,9 @@ public class TaskEvent
 }
 
 public class BasicAuthenticationHeaderValue : AuthenticationHeaderValue
-    {
-        public BasicAuthenticationHeaderValue(string username, string password) :
-            base("Basic", Convert.ToBase64String(Encoding.UTF8.GetBytes(string.Format("{0}:{1}", username, password)))) { }
-    }
+{
+    public BasicAuthenticationHeaderValue(string username, string password) :
+        base("Basic", Convert.ToBase64String(Encoding.UTF8.GetBytes(string.Format("{0}:{1}", username, password))))
+    { }
+}
 
