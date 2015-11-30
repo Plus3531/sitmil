@@ -217,7 +217,7 @@ namespace SituatorMilestone
 
             var ticks = dateTimePickerDateProg.Value.Ticks;
             var url = string.Format("{0}/odata/DTasks({1})/UpdateEndTime", GetSituatorWebApiUrl(), progTask.Id);
-            var umt = new UpdateMilestoneTask { Comment = textBoxCommentTis.Text, PlannedEndTime = ticks.ToString() };
+            var umt = new UpdateMilestoneTask { Comment = textBoxCommentProg.Text, PlannedEndTime = ticks.ToString() };
             var formatter = new JsonMediaTypeFormatter { SerializerSettings = { NullValueHandling = NullValueHandling.Ignore } };
             var content = new ObjectContent<UpdateMilestoneTask>(umt, formatter);
             var response = await _client.PostAsync(url, content);
