@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.button1 = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
             this.textBoxIncidentId = new System.Windows.Forms.TextBox();
@@ -36,17 +37,26 @@
             this.textBoxSitWebApi = new System.Windows.Forms.TextBox();
             this.panel1 = new System.Windows.Forms.Panel();
             this.groupBoxPrognose = new System.Windows.Forms.GroupBox();
+            this.label10 = new System.Windows.Forms.Label();
+            this.comboBoxProgDuur = new System.Windows.Forms.ComboBox();
+            this.label9 = new System.Windows.Forms.Label();
+            this.comboBoxProgHGI = new System.Windows.Forms.ComboBox();
+            this.label8 = new System.Windows.Forms.Label();
+            this.comboBoxProgType = new System.Windows.Forms.ComboBox();
             this.buttonUpdateProg = new System.Windows.Forms.Button();
             this.label5 = new System.Windows.Forms.Label();
             this.dateTimePickerDateProg = new System.Windows.Forms.DateTimePicker();
             this.label6 = new System.Windows.Forms.Label();
-            this.textBoxCommentProg = new System.Windows.Forms.TextBox();
+            this.textBoxProgRedenWijziging = new System.Windows.Forms.TextBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.label7 = new System.Windows.Forms.Label();
+            this.label1 = new System.Windows.Forms.Label();
+            this.comboBoxTisWijzigingsType = new System.Windows.Forms.ComboBox();
+            this.comboBoxTis = new System.Windows.Forms.ComboBox();
             this.buttonUpdateTis = new System.Windows.Forms.Button();
             this.label4 = new System.Windows.Forms.Label();
             this.dateTimePickerDateTis = new System.Windows.Forms.DateTimePicker();
-            this.label1 = new System.Windows.Forms.Label();
-            this.textBoxCommentTis = new System.Windows.Forms.TextBox();
+            this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.panel1.SuspendLayout();
             this.groupBoxPrognose.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -123,21 +133,103 @@
             // 
             // groupBoxPrognose
             // 
+            this.groupBoxPrognose.Controls.Add(this.label10);
+            this.groupBoxPrognose.Controls.Add(this.comboBoxProgDuur);
+            this.groupBoxPrognose.Controls.Add(this.label9);
+            this.groupBoxPrognose.Controls.Add(this.comboBoxProgHGI);
+            this.groupBoxPrognose.Controls.Add(this.label8);
+            this.groupBoxPrognose.Controls.Add(this.comboBoxProgType);
             this.groupBoxPrognose.Controls.Add(this.buttonUpdateProg);
             this.groupBoxPrognose.Controls.Add(this.label5);
             this.groupBoxPrognose.Controls.Add(this.dateTimePickerDateProg);
             this.groupBoxPrognose.Controls.Add(this.label6);
-            this.groupBoxPrognose.Controls.Add(this.textBoxCommentProg);
+            this.groupBoxPrognose.Controls.Add(this.textBoxProgRedenWijziging);
             this.groupBoxPrognose.Location = new System.Drawing.Point(549, 25);
             this.groupBoxPrognose.Name = "groupBoxPrognose";
-            this.groupBoxPrognose.Size = new System.Drawing.Size(266, 129);
+            this.groupBoxPrognose.Size = new System.Drawing.Size(368, 129);
             this.groupBoxPrognose.TabIndex = 11;
             this.groupBoxPrognose.TabStop = false;
             this.groupBoxPrognose.Text = "Update prognose";
             // 
+            // label10
+            // 
+            this.label10.AutoSize = true;
+            this.label10.Location = new System.Drawing.Point(207, 70);
+            this.label10.Name = "label10";
+            this.label10.Size = new System.Drawing.Size(30, 13);
+            this.label10.TabIndex = 26;
+            this.label10.Text = "Duur";
+            this.toolTip1.SetToolTip(this.label10, "Handmatig gezet indicatie");
+            // 
+            // comboBoxProgDuur
+            // 
+            this.comboBoxProgDuur.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBoxProgDuur.FormattingEnabled = true;
+            this.comboBoxProgDuur.Items.AddRange(new object[] {
+            "10",
+            "20",
+            "30",
+            "40",
+            "50",
+            "60",
+            "90",
+            "120",
+            "180",
+            "300",
+            "480"});
+            this.comboBoxProgDuur.Location = new System.Drawing.Point(239, 67);
+            this.comboBoxProgDuur.Name = "comboBoxProgDuur";
+            this.comboBoxProgDuur.Size = new System.Drawing.Size(89, 21);
+            this.comboBoxProgDuur.TabIndex = 25;
+            // 
+            // label9
+            // 
+            this.label9.AutoSize = true;
+            this.label9.Location = new System.Drawing.Point(207, 43);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(26, 13);
+            this.label9.TabIndex = 24;
+            this.label9.Text = "HGI";
+            this.toolTip1.SetToolTip(this.label9, "Handmatig gezet indicatie");
+            // 
+            // comboBoxProgHGI
+            // 
+            this.comboBoxProgHGI.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBoxProgHGI.FormattingEnabled = true;
+            this.comboBoxProgHGI.Items.AddRange(new object[] {
+            "ja",
+            "nee"});
+            this.comboBoxProgHGI.Location = new System.Drawing.Point(239, 40);
+            this.comboBoxProgHGI.Name = "comboBoxProgHGI";
+            this.comboBoxProgHGI.Size = new System.Drawing.Size(89, 21);
+            this.comboBoxProgHGI.TabIndex = 23;
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(207, 16);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(31, 13);
+            this.label8.TabIndex = 22;
+            this.label8.Text = "Type";
+            // 
+            // comboBoxProgType
+            // 
+            this.comboBoxProgType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBoxProgType.FormattingEnabled = true;
+            this.comboBoxProgType.Items.AddRange(new object[] {
+            "Initieel",
+            "Aangepast",
+            "Definitief"});
+            this.comboBoxProgType.Location = new System.Drawing.Point(239, 13);
+            this.comboBoxProgType.Name = "comboBoxProgType";
+            this.comboBoxProgType.Size = new System.Drawing.Size(89, 21);
+            this.comboBoxProgType.TabIndex = 21;
+            // 
             // buttonUpdateProg
             // 
-            this.buttonUpdateProg.Location = new System.Drawing.Point(193, 92);
+            this.buttonUpdateProg.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.buttonUpdateProg.Location = new System.Drawing.Point(304, 95);
             this.buttonUpdateProg.Name = "buttonUpdateProg";
             this.buttonUpdateProg.Size = new System.Drawing.Size(58, 23);
             this.buttonUpdateProg.TabIndex = 15;
@@ -167,24 +259,26 @@
             this.label6.AutoSize = true;
             this.label6.Location = new System.Drawing.Point(17, 79);
             this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(51, 13);
+            this.label6.Size = new System.Drawing.Size(81, 13);
             this.label6.TabIndex = 11;
-            this.label6.Text = "Comment";
+            this.label6.Text = "Reden wijziging";
             // 
-            // textBoxCommentProg
+            // textBoxProgRedenWijziging
             // 
-            this.textBoxCommentProg.Location = new System.Drawing.Point(20, 95);
-            this.textBoxCommentProg.Name = "textBoxCommentProg";
-            this.textBoxCommentProg.Size = new System.Drawing.Size(167, 20);
-            this.textBoxCommentProg.TabIndex = 10;
+            this.textBoxProgRedenWijziging.Location = new System.Drawing.Point(20, 95);
+            this.textBoxProgRedenWijziging.Name = "textBoxProgRedenWijziging";
+            this.textBoxProgRedenWijziging.Size = new System.Drawing.Size(167, 20);
+            this.textBoxProgRedenWijziging.TabIndex = 10;
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.label7);
+            this.groupBox1.Controls.Add(this.label1);
+            this.groupBox1.Controls.Add(this.comboBoxTisWijzigingsType);
+            this.groupBox1.Controls.Add(this.comboBoxTis);
             this.groupBox1.Controls.Add(this.buttonUpdateTis);
             this.groupBox1.Controls.Add(this.label4);
             this.groupBox1.Controls.Add(this.dateTimePickerDateTis);
-            this.groupBox1.Controls.Add(this.label1);
-            this.groupBox1.Controls.Add(this.textBoxCommentTis);
             this.groupBox1.Location = new System.Drawing.Point(266, 25);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(266, 129);
@@ -192,8 +286,55 @@
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Update scenario (TIS)";
             // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(6, 105);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(74, 13);
+            this.label7.TabIndex = 20;
+            this.label7.Text = "Wijzigingstype";
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(6, 82);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(24, 13);
+            this.label1.TabIndex = 19;
+            this.label1.Text = "TIS";
+            // 
+            // comboBoxTisWijzigingsType
+            // 
+            this.comboBoxTisWijzigingsType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBoxTisWijzigingsType.FormattingEnabled = true;
+            this.comboBoxTisWijzigingsType.Items.AddRange(new object[] {
+            "initieel",
+            "opschaling",
+            "afschaling"});
+            this.comboBoxTisWijzigingsType.Location = new System.Drawing.Point(87, 102);
+            this.comboBoxTisWijzigingsType.Name = "comboBoxTisWijzigingsType";
+            this.comboBoxTisWijzigingsType.Size = new System.Drawing.Size(89, 21);
+            this.comboBoxTisWijzigingsType.TabIndex = 18;
+            // 
+            // comboBoxTis
+            // 
+            this.comboBoxTis.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBoxTis.FormattingEnabled = true;
+            this.comboBoxTis.Items.AddRange(new object[] {
+            "1.0",
+            "1.1",
+            "2.3",
+            "3.4",
+            "4.5"});
+            this.comboBoxTis.Location = new System.Drawing.Point(87, 79);
+            this.comboBoxTis.Name = "comboBoxTis";
+            this.comboBoxTis.Size = new System.Drawing.Size(89, 21);
+            this.comboBoxTis.TabIndex = 17;
+            // 
             // buttonUpdateTis
             // 
+            this.buttonUpdateTis.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.buttonUpdateTis.Location = new System.Drawing.Point(193, 92);
             this.buttonUpdateTis.Name = "buttonUpdateTis";
             this.buttonUpdateTis.Size = new System.Drawing.Size(58, 23);
@@ -218,22 +359,6 @@
             this.dateTimePickerDateTis.Name = "dateTimePickerDateTis";
             this.dateTimePickerDateTis.Size = new System.Drawing.Size(156, 20);
             this.dateTimePickerDateTis.TabIndex = 12;
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(17, 79);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(51, 13);
-            this.label1.TabIndex = 11;
-            this.label1.Text = "Comment";
-            // 
-            // textBoxCommentTis
-            // 
-            this.textBoxCommentTis.Location = new System.Drawing.Point(20, 95);
-            this.textBoxCommentTis.Name = "textBoxCommentTis";
-            this.textBoxCommentTis.Size = new System.Drawing.Size(167, 20);
-            this.textBoxCommentTis.TabIndex = 10;
             // 
             // Form1
             // 
@@ -268,13 +393,22 @@
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.DateTimePicker dateTimePickerDateProg;
         private System.Windows.Forms.Label label6;
-        private System.Windows.Forms.TextBox textBoxCommentProg;
+        private System.Windows.Forms.TextBox textBoxProgRedenWijziging;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.Button buttonUpdateTis;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.DateTimePicker dateTimePickerDateTis;
+        private System.Windows.Forms.Label label7;
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.TextBox textBoxCommentTis;
+        private System.Windows.Forms.ComboBox comboBoxTisWijzigingsType;
+        private System.Windows.Forms.ComboBox comboBoxTis;
+        private System.Windows.Forms.Label label10;
+        private System.Windows.Forms.ToolTip toolTip1;
+        private System.Windows.Forms.ComboBox comboBoxProgDuur;
+        private System.Windows.Forms.Label label9;
+        private System.Windows.Forms.ComboBox comboBoxProgHGI;
+        private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.ComboBox comboBoxProgType;
     }
 }
 

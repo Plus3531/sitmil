@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Net;
@@ -12,6 +13,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Linq;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace SituatorMilestone
 {
@@ -22,6 +24,10 @@ namespace SituatorMilestone
         private string _sessionToken;
         public Form1()
         {
+            JsonConvert.DefaultSettings = () => new JsonSerializerSettings
+            {
+                ContractResolver = new CamelCasePropertyNamesContractResolver()
+            };
             InitializeComponent();
             textBoxIncidentId.Text = ConfigurationManager.AppSettings["incidentId"];
             textBoxSitWebApi.Text = ConfigurationManager.AppSettings["situatorWebApiUrl"];
@@ -130,6 +136,19 @@ namespace SituatorMilestone
                (dt.TaskType == "MilestoneTask") && (dt.Name == "PrognoseVerloop"));
             if (jValuePrognose != null)
             {
+                var mmm = GetTaskEvents(jValuePrognose.DTaskEvents);
+                foreach (var tev in mmm)
+                {
+                    try
+                    {
+                        var progg = JsonConvert.DeserializeObject<PrognoseDTaskEventComment>(tev.Comment);
+                        Console.WriteLine(progg);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine(ex);
+                    }                    
+                }
                 result.Add(new MilestoneTask { TaskEvents = GetTaskEvents(jValuePrognose.DTaskEvents), Id = jValuePrognose.TaskID, Name = jValuePrognose.Name });
             }
             var jValueScenario = ((IEnumerable<dynamic>)dTasks).FirstOrDefault(dt =>
@@ -194,7 +213,15 @@ namespace SituatorMilestone
 
             var ticks = dateTimePickerDateTis.Value.Ticks;
             var url = string.Format("{0}/odata/DTasks({1})/UpdateEndTime", GetSituatorWebApiUrl(), tisTask.Id);
-            var umt = new UpdateMilestoneTask { Comment = textBoxCommentTis.Text, PlannedEndTime = ticks.ToString() };
+
+            var commentScenario = new ScenarioDTaskEventComment
+            {
+                Tis = comboBoxTis.SelectedItem.ToString(),
+                WijzigingsType = comboBoxTisWijzigingsType.SelectedItem.ToString()
+            };
+
+            var json = JsonConvert.SerializeObject(commentScenario);
+            var umt = new UpdateMilestoneTask { Comment = json, PlannedEndTime = ticks.ToString() };
             var formatter = new JsonMediaTypeFormatter { SerializerSettings = { NullValueHandling = NullValueHandling.Ignore } };
             var content = new ObjectContent<UpdateMilestoneTask>(umt, formatter);
             var response = await _client.PostAsync(url, content);
@@ -217,7 +244,15 @@ namespace SituatorMilestone
 
             var ticks = dateTimePickerDateProg.Value.Ticks;
             var url = string.Format("{0}/odata/DTasks({1})/UpdateEndTime", GetSituatorWebApiUrl(), progTask.Id);
-            var umt = new UpdateMilestoneTask { Comment = textBoxCommentProg.Text, PlannedEndTime = ticks.ToString() };
+            var progComment = new PrognoseDTaskEventComment
+            {
+                Duur = Convert.ToInt32(comboBoxProgDuur.SelectedItem),
+                HandmatigGezetIndicatie = comboBoxProgHGI.SelectedItem.ToString(),
+                Type = comboBoxProgType.SelectedItem.ToString(),
+                RedenWijziging = textBoxProgRedenWijziging.Text
+            };
+            var json = JsonConvert.SerializeObject(progComment);
+            var umt = new UpdateMilestoneTask { Comment = json, PlannedEndTime = ticks.ToString() };
             var formatter = new JsonMediaTypeFormatter { SerializerSettings = { NullValueHandling = NullValueHandling.Ignore } };
             var content = new ObjectContent<UpdateMilestoneTask>(umt, formatter);
             var response = await _client.PostAsync(url, content);
@@ -282,9 +317,24 @@ namespace SituatorMilestone
     }
 }
 
+public class ScenarioDTaskEventComment
+{
+    public string Tis { get; set; }
+    public string WijzigingsType { get; set; }
+}
+
+public class PrognoseDTaskEventComment
+{
+    public string Type { get; set; }
+    public int Duur { get; set; }
+    public string HandmatigGezetIndicatie { get; set; }
+    public string RedenWijziging { get; set; }
+}
+
+
 public class UpdateMilestoneTask
 {
-    // ReSharper disable once UnusedAutoPropertyAccessor.Global
+    // ReSharper disable once UnusedAutoPropertyAccessor.Global    
     public string PlannedEndTime { get; set; }
     // ReSharper disable once UnusedAutoPropertyAccessor.Global
     public string Comment { get; set; }
