@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Linq;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 
 namespace SituatorMilestone
@@ -35,6 +36,7 @@ namespace SituatorMilestone
             dateTimePickerDateProg.CustomFormat = "dd-MM-yyyy hh:mm:ss";
             dateTimePickerDateTis.Format = DateTimePickerFormat.Custom;
             dateTimePickerDateTis.CustomFormat = "dd-MM-yyyy hh:mm:ss";
+            comboBoxQuery.SelectedIndex = 0;
         }
 
         private async Task<HttpClient> GetHttpClient()
@@ -64,7 +66,8 @@ namespace SituatorMilestone
                 _client = await GetHttpClient();
             }
 
-            _milestoneTasks = (await GetMilestones(_client, textBoxSitWebApi.Text, textBoxIncidentId.Text)).ToList();
+            var query = comboBoxQuery.SelectedItem.ToString();
+            _milestoneTasks = (await GetMilestones(_client, textBoxSitWebApi.Text, textBoxIncidentId.Text, query)).ToList();
             //  textBoxMilestones.Text += milestoneIds.Aggregate((a, b) => a + " " + b);
 
             foreach (var milestoneTask in _milestoneTasks)
@@ -74,6 +77,7 @@ namespace SituatorMilestone
                 textBoxMilestones.Text += "task " + milestoneTask.Name + Environment.NewLine;
                 foreach (var te in milestoneTask.TaskEvents)
                 {
+                    if (te == null) continue;
                     var taskEvent = te;
                     textBoxMilestones.Text += string.Format("{0}, Reporttime: {1}, Comment: {2}, PlannedEndTime: {3}", taskEvent.UserJobTitleName,
                         taskEvent.ReportTimeDateTime, taskEvent.Comment, taskEvent.PlannedEndTime);
@@ -90,7 +94,17 @@ namespace SituatorMilestone
         {
             string content = dTaskEvent.Content;
             if (string.IsNullOrWhiteSpace(content)) return null;
-            var doc = XDocument.Parse(content);
+            XDocument doc = null;
+            try
+            {
+                doc = XDocument.Parse(content);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex);
+                Debug.WriteLine(content);
+            }
+            if (doc == null) return null; 
 
             if (doc.Root == null) return null;
             var result = new TaskEvent
@@ -120,14 +134,23 @@ namespace SituatorMilestone
             return result;
         }
 
-        private static async Task<IEnumerable<MilestoneTask>> GetMilestones(HttpClient client, string urlSit, string incidentId)
+        private static async Task<IEnumerable<MilestoneTask>> GetMilestones(HttpClient client, string urlSit, string incidentId, string query)
         {
             var result = new List<MilestoneTask>();
             // TODO: milestone tasks on closed incidents does not work. Will be fixed in 26 nov Situator Drop.
-            var url = string.Format("{0}/odata/Incidents({1})?$expand=DTasks/DTaskEvents", urlSit, incidentId);
-            //var url = string.Format("{0}/odata/incidents?$filter=IncidentID eq {1} and Status eq 'Closed'&$expand=DTasks", urlSit, incidentId);
+            
+            var url = string.Format(query, urlSit, incidentId);
+            
             var response = await client.GetAsync(url);
-            if (!response.IsSuccessStatusCode) return result;
+            if (!response.IsSuccessStatusCode)
+            {
+                if (response.StatusCode == HttpStatusCode.NotFound)
+                {
+                    MessageBox.Show("not found: " + url);
+                }
+                return result;
+                
+            }
 
             var res = await response.Content.ReadAsStringAsync();
             var myDyn = JsonConvert.DeserializeObject<dynamic>(res);
@@ -142,6 +165,7 @@ namespace SituatorMilestone
                     try
                     {
                         var progg = JsonConvert.DeserializeObject<PrognoseDTaskEventComment>(tev.Comment);
+                        if (progg.DatumTijd > DateTime.MinValue) Console.WriteLine("huu: " + progg.DatumTijd.ToLocalTime());
                         Console.WriteLine(progg);
                     }
                     catch (Exception ex)
@@ -249,9 +273,10 @@ namespace SituatorMilestone
                 Duur = Convert.ToInt32(comboBoxProgDuur.SelectedItem),
                 HandmatigGezetIndicatie = comboBoxProgHGI.SelectedItem.ToString(),
                 Type = comboBoxProgType.SelectedItem.ToString(),
-                RedenWijziging = textBoxProgRedenWijziging.Text
+                RedenWijziging = textBoxProgRedenWijziging.Text,
+                DatumTijd = DateTime.Now.ToUniversalTime()
             };
-            var json = JsonConvert.SerializeObject(progComment);
+            var json = JsonConvert.SerializeObject(progComment, new IsoDateTimeConverter { DateTimeFormat = "yyyy-MM-ddTHH:mm:ss.fffZ" });
             var umt = new UpdateMilestoneTask { Comment = json, PlannedEndTime = ticks.ToString() };
             var formatter = new JsonMediaTypeFormatter { SerializerSettings = { NullValueHandling = NullValueHandling.Ignore } };
             var content = new ObjectContent<UpdateMilestoneTask>(umt, formatter);
@@ -261,6 +286,12 @@ namespace SituatorMilestone
             {
                 MessageBox.Show(response.Content.ReadAsStringAsync().Result);
             }
+        }
+
+        private void queryToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var f = new FormDB();
+            f.Show(this);
         }
         //private static async Task<MilestoneTask> GetTask(HttpClient client, string urlSit, MilestoneTask milestoneTask)
         //{
@@ -329,6 +360,7 @@ public class PrognoseDTaskEventComment
     public int Duur { get; set; }
     public string HandmatigGezetIndicatie { get; set; }
     public string RedenWijziging { get; set; }
+    public DateTime DatumTijd { get; set; }
 }
 
 

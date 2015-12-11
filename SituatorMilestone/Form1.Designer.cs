@@ -36,6 +36,8 @@
             this.label3 = new System.Windows.Forms.Label();
             this.textBoxSitWebApi = new System.Windows.Forms.TextBox();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.label11 = new System.Windows.Forms.Label();
+            this.comboBoxQuery = new System.Windows.Forms.ComboBox();
             this.groupBoxPrognose = new System.Windows.Forms.GroupBox();
             this.label10 = new System.Windows.Forms.Label();
             this.comboBoxProgDuur = new System.Windows.Forms.ComboBox();
@@ -57,14 +59,18 @@
             this.label4 = new System.Windows.Forms.Label();
             this.dateTimePickerDateTis = new System.Windows.Forms.DateTimePicker();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
+            this.menuStrip1 = new System.Windows.Forms.MenuStrip();
+            this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.queryToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.panel1.SuspendLayout();
             this.groupBoxPrognose.SuspendLayout();
             this.groupBox1.SuspendLayout();
+            this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(12, 77);
+            this.button1.Location = new System.Drawing.Point(12, 84);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(167, 23);
             this.button1.TabIndex = 2;
@@ -92,11 +98,11 @@
             // textBoxMilestones
             // 
             this.textBoxMilestones.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.textBoxMilestones.Location = new System.Drawing.Point(0, 173);
+            this.textBoxMilestones.Location = new System.Drawing.Point(0, 197);
             this.textBoxMilestones.Multiline = true;
             this.textBoxMilestones.Name = "textBoxMilestones";
             this.textBoxMilestones.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.textBoxMilestones.Size = new System.Drawing.Size(929, 374);
+            this.textBoxMilestones.Size = new System.Drawing.Size(929, 350);
             this.textBoxMilestones.TabIndex = 5;
             // 
             // label3
@@ -118,6 +124,8 @@
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.label11);
+            this.panel1.Controls.Add(this.comboBoxQuery);
             this.panel1.Controls.Add(this.groupBoxPrognose);
             this.panel1.Controls.Add(this.groupBox1);
             this.panel1.Controls.Add(this.label3);
@@ -126,10 +134,33 @@
             this.panel1.Controls.Add(this.textBoxIncidentId);
             this.panel1.Controls.Add(this.button1);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Top;
-            this.panel1.Location = new System.Drawing.Point(0, 0);
+            this.panel1.Location = new System.Drawing.Point(0, 24);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(929, 173);
             this.panel1.TabIndex = 8;
+            // 
+            // label11
+            // 
+            this.label11.AutoSize = true;
+            this.label11.Location = new System.Drawing.Point(12, 118);
+            this.label11.Name = "label11";
+            this.label11.Size = new System.Drawing.Size(35, 13);
+            this.label11.TabIndex = 14;
+            this.label11.Text = "Query";
+            // 
+            // comboBoxQuery
+            // 
+            this.comboBoxQuery.FormattingEnabled = true;
+            this.comboBoxQuery.Items.AddRange(new object[] {
+            "{0}/odata/Incidents({1})?$expand=DTasks/DTaskEvents",
+            "{0}/odata/incidents?$filter=IncidentID eq {1} and Status eq \'Closed\'&$expand=DTas" +
+                "ks/DTaskEvents",
+            "{0}/odata/incidents?$filter=IncidentID eq {1} and Status eq \'Closed\'&$expand=DTas" +
+                "ks"});
+            this.comboBoxQuery.Location = new System.Drawing.Point(10, 134);
+            this.comboBoxQuery.Name = "comboBoxQuery";
+            this.comboBoxQuery.Size = new System.Drawing.Size(367, 21);
+            this.comboBoxQuery.TabIndex = 12;
             // 
             // groupBoxPrognose
             // 
@@ -144,9 +175,9 @@
             this.groupBoxPrognose.Controls.Add(this.dateTimePickerDateProg);
             this.groupBoxPrognose.Controls.Add(this.label6);
             this.groupBoxPrognose.Controls.Add(this.textBoxProgRedenWijziging);
-            this.groupBoxPrognose.Location = new System.Drawing.Point(549, 25);
+            this.groupBoxPrognose.Location = new System.Drawing.Point(576, 25);
             this.groupBoxPrognose.Name = "groupBoxPrognose";
-            this.groupBoxPrognose.Size = new System.Drawing.Size(368, 129);
+            this.groupBoxPrognose.Size = new System.Drawing.Size(341, 129);
             this.groupBoxPrognose.TabIndex = 11;
             this.groupBoxPrognose.TabStop = false;
             this.groupBoxPrognose.Text = "Update prognose";
@@ -229,7 +260,7 @@
             // buttonUpdateProg
             // 
             this.buttonUpdateProg.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.buttonUpdateProg.Location = new System.Drawing.Point(304, 95);
+            this.buttonUpdateProg.Location = new System.Drawing.Point(270, 100);
             this.buttonUpdateProg.Name = "buttonUpdateProg";
             this.buttonUpdateProg.Size = new System.Drawing.Size(58, 23);
             this.buttonUpdateProg.TabIndex = 15;
@@ -279,9 +310,9 @@
             this.groupBox1.Controls.Add(this.buttonUpdateTis);
             this.groupBox1.Controls.Add(this.label4);
             this.groupBox1.Controls.Add(this.dateTimePickerDateTis);
-            this.groupBox1.Location = new System.Drawing.Point(266, 25);
+            this.groupBox1.Location = new System.Drawing.Point(383, 12);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(266, 129);
+            this.groupBox1.Size = new System.Drawing.Size(187, 155);
             this.groupBox1.TabIndex = 10;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Update scenario (TIS)";
@@ -335,7 +366,7 @@
             // buttonUpdateTis
             // 
             this.buttonUpdateTis.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.buttonUpdateTis.Location = new System.Drawing.Point(193, 92);
+            this.buttonUpdateTis.Location = new System.Drawing.Point(118, 126);
             this.buttonUpdateTis.Name = "buttonUpdateTis";
             this.buttonUpdateTis.Size = new System.Drawing.Size(58, 23);
             this.buttonUpdateTis.TabIndex = 16;
@@ -360,6 +391,31 @@
             this.dateTimePickerDateTis.Size = new System.Drawing.Size(156, 20);
             this.dateTimePickerDateTis.TabIndex = 12;
             // 
+            // menuStrip1
+            // 
+            this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.fileToolStripMenuItem});
+            this.menuStrip1.Location = new System.Drawing.Point(0, 0);
+            this.menuStrip1.Name = "menuStrip1";
+            this.menuStrip1.Size = new System.Drawing.Size(929, 24);
+            this.menuStrip1.TabIndex = 15;
+            this.menuStrip1.Text = "menuStrip1";
+            // 
+            // fileToolStripMenuItem
+            // 
+            this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.queryToolStripMenuItem});
+            this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
+            this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
+            this.fileToolStripMenuItem.Text = "File";
+            // 
+            // queryToolStripMenuItem
+            // 
+            this.queryToolStripMenuItem.Name = "queryToolStripMenuItem";
+            this.queryToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.queryToolStripMenuItem.Text = "Query";
+            this.queryToolStripMenuItem.Click += new System.EventHandler(this.queryToolStripMenuItem_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -367,6 +423,8 @@
             this.ClientSize = new System.Drawing.Size(929, 547);
             this.Controls.Add(this.textBoxMilestones);
             this.Controls.Add(this.panel1);
+            this.Controls.Add(this.menuStrip1);
+            this.MainMenuStrip = this.menuStrip1;
             this.Name = "Form1";
             this.Text = "Form1";
             this.panel1.ResumeLayout(false);
@@ -375,6 +433,8 @@
             this.groupBoxPrognose.PerformLayout();
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
+            this.menuStrip1.ResumeLayout(false);
+            this.menuStrip1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -409,6 +469,11 @@
         private System.Windows.Forms.ComboBox comboBoxProgHGI;
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.ComboBox comboBoxProgType;
+        private System.Windows.Forms.ComboBox comboBoxQuery;
+        private System.Windows.Forms.Label label11;
+        private System.Windows.Forms.MenuStrip menuStrip1;
+        private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem queryToolStripMenuItem;
     }
 }
 
