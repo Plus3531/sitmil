@@ -20,9 +20,7 @@ namespace SituatorMilestone
 {
     public partial class Form1 : Form
     {
-        private HttpClient _client;
         private IEnumerable<MilestoneTask> _milestoneTasks;
-        private string _sessionToken;
         public Form1()
         {
             JsonConvert.DefaultSettings = () => new JsonSerializerSettings
@@ -39,21 +37,6 @@ namespace SituatorMilestone
             comboBoxQuery.SelectedIndex = 0;
         }
 
-        private async Task<HttpClient> GetHttpClient()
-        {
-            var cookieContainer = new CookieContainer();
-            //var token = textBoxToken.Text; //await Login();
-            var handler = new HttpClientHandler { CookieContainer = cookieContainer };
-            var result = new HttpClient(handler) { BaseAddress = new Uri(GetBaseAddress()) };
-            result.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            if (string.IsNullOrWhiteSpace(_sessionToken))
-            {
-                _sessionToken = await LogIn(ConfigurationManager.AppSettings["username"], ConfigurationManager.AppSettings["password"]);
-            }
-            cookieContainer.Add(result.BaseAddress, new Cookie("session-token", _sessionToken));
-
-            return result;
-        }
         /// <summary>
         /// 
         /// </summary>
@@ -61,13 +44,10 @@ namespace SituatorMilestone
         /// <param name="e"></param>
         private async void button1_Click(object sender, EventArgs e)
         {
-            if (_client == null)
-            {
-                _client = await GetHttpClient();
-            }
+            var httpClient = await PreparedHttpClient.GetInstance();
 
             var query = comboBoxQuery.SelectedItem.ToString();
-            _milestoneTasks = (await GetMilestones(_client, textBoxSitWebApi.Text, textBoxIncidentId.Text, query)).ToList();
+            _milestoneTasks = (await GetMilestones(httpClient, textBoxSitWebApi.Text, textBoxIncidentId.Text, query)).ToList();
             //  textBoxMilestones.Text += milestoneIds.Aggregate((a, b) => a + " " + b);
 
             foreach (var milestoneTask in _milestoneTasks)
@@ -184,46 +164,11 @@ namespace SituatorMilestone
             return result;
         }
 
-        private string GetBaseAddress()
-        {
-            var uri = new Uri(textBoxSitWebApi.Text, UriKind.Absolute);
-            //remove segments
-            var noLastSegment = uri.GetComponents(UriComponents.SchemeAndServer,
-                UriFormat.SafeUnescaped);
-            return noLastSegment;
-        }
+       
 
-        private Uri GetSituatorWebApiUrl()
-        {
-            return new Uri(textBoxSitWebApi.Text, UriKind.Absolute);
-        }
+       
 
-        private async Task<string> LogIn(string user, string password)
-        {
-            var cookies = new CookieContainer();
-            var handler = new HttpClientHandler { CookieContainer = cookies };
-            var client = new HttpClient(handler);
-
-            client.DefaultRequestHeaders.Authorization = new BasicAuthenticationHeaderValue(user, password);
-
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            client.DefaultRequestHeaders.Add("X-Api-Version", "1");
-            var sitUri = GetSituatorWebApiUrl();
-            var url = sitUri + "/" + "api/Login";
-            //string url = GetBaseAddress() + "/" + "api/Login";
-            var response = await client.PostAsync(url, null);
-            if (!response.IsSuccessStatusCode) return string.Empty;
-
-            var responseCookies = cookies.GetCookies(sitUri).Cast<Cookie>();
-            foreach (var cookie in responseCookies)
-            {
-                if (cookie.Name == "session-token")
-                {
-                    return cookie.Value;
-                }
-            }
-            return string.Empty;
-        }
+      
 
         private async void buttonUpdateTis_Click(object sender, EventArgs e)
         {
@@ -236,19 +181,19 @@ namespace SituatorMilestone
             if (tisTask == null) return;
 
             var ticks = dateTimePickerDateTis.Value.Ticks;
-            var url = string.Format("{0}/odata/DTasks({1})/UpdateEndTime", GetSituatorWebApiUrl(), tisTask.Id);
+            var url = string.Format("{0}/odata/DTasks({1})/UpdateEndTime", PreparedHttpClient.GetSituatorWebApiUrl(), tisTask.Id);
 
             var commentScenario = new ScenarioDTaskEventComment
             {
                 Tis = comboBoxTis.SelectedItem.ToString(),
                 WijzigingsType = comboBoxTisWijzigingsType.SelectedItem.ToString()
             };
-
+            var httpClient = await PreparedHttpClient.GetInstance();
             var json = JsonConvert.SerializeObject(commentScenario);
             var umt = new UpdateMilestoneTask { Comment = json, PlannedEndTime = ticks.ToString() };
             var formatter = new JsonMediaTypeFormatter { SerializerSettings = { NullValueHandling = NullValueHandling.Ignore } };
             var content = new ObjectContent<UpdateMilestoneTask>(umt, formatter);
-            var response = await _client.PostAsync(url, content);
+            var response = await httpClient.PostAsync(url, content);
             Console.WriteLine(response);
             if (!response.IsSuccessStatusCode)
             {
@@ -267,7 +212,7 @@ namespace SituatorMilestone
             if (progTask == null) return;
 
             var ticks = dateTimePickerDateProg.Value.Ticks;
-            var url = string.Format("{0}/odata/DTasks({1})/UpdateEndTime", GetSituatorWebApiUrl(), progTask.Id);
+            var url = string.Format("{0}/odata/DTasks({1})/UpdateEndTime", PreparedHttpClient.GetSituatorWebApiUrl(), progTask.Id);
             var progComment = new PrognoseDTaskEventComment
             {
                 Duur = Convert.ToInt32(comboBoxProgDuur.SelectedItem),
@@ -276,11 +221,12 @@ namespace SituatorMilestone
                 RedenWijziging = textBoxProgRedenWijziging.Text,
                 DatumTijd = DateTime.Now.ToUniversalTime()
             };
+            var httpClient = await PreparedHttpClient.GetInstance();
             var json = JsonConvert.SerializeObject(progComment, new IsoDateTimeConverter { DateTimeFormat = "yyyy-MM-ddTHH:mm:ss.fffZ" });
             var umt = new UpdateMilestoneTask { Comment = json, PlannedEndTime = ticks.ToString() };
             var formatter = new JsonMediaTypeFormatter { SerializerSettings = { NullValueHandling = NullValueHandling.Ignore } };
             var content = new ObjectContent<UpdateMilestoneTask>(umt, formatter);
-            var response = await _client.PostAsync(url, content);
+            var response = await httpClient.PostAsync(url, content);
             Console.WriteLine(response);
             if (!response.IsSuccessStatusCode)
             {

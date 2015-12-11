@@ -118,6 +118,7 @@
             // 
             this.textBoxSitWebApi.Location = new System.Drawing.Point(8, 25);
             this.textBoxSitWebApi.Name = "textBoxSitWebApi";
+            this.textBoxSitWebApi.ReadOnly = true;
             this.textBoxSitWebApi.Size = new System.Drawing.Size(252, 20);
             this.textBoxSitWebApi.TabIndex = 6;
             this.textBoxSitWebApi.Text = "http://eo-iis-dev/SituatorWebAPI";
@@ -412,7 +413,7 @@
             // queryToolStripMenuItem
             // 
             this.queryToolStripMenuItem.Name = "queryToolStripMenuItem";
-            this.queryToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.queryToolStripMenuItem.Size = new System.Drawing.Size(106, 22);
             this.queryToolStripMenuItem.Text = "Query";
             this.queryToolStripMenuItem.Click += new System.EventHandler(this.queryToolStripMenuItem_Click);
             // 
